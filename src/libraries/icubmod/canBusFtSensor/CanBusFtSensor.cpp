@@ -198,6 +198,7 @@ bool CanBusFtSensor::sensor_start(yarp::os::Searchable& analogConfig)
         pCanBus->canWrite(outBuffer, 1, &canMessages);
         yDebug("using broadcast period %d on device %s\n", period, analogConfig.find("deviceId").toString().c_str());
     }
+    
 
     //init message for mais board
     if (channelsNum==16 && dataFormat==ANALOG_FORMAT_8_BIT)
@@ -276,6 +277,8 @@ bool CanBusFtSensor::sensor_start(yarp::os::Searchable& analogConfig)
             pCanBus->canWrite(outBuffer, 1, &canMessages);
         }
     }
+
+
     return true;
 }
 
@@ -559,4 +562,34 @@ bool CanBusFtSensor::getSixAxisForceTorqueSensorMeasure(size_t sens_index, yarp:
     
     return true;
 }
+
+bool CanBusFtSensor::setDataRate(const int &period) 
+{
+    std::lock_guard<std::mutex> lck(mtx);
+    //from https://github.com/robotology/icub-firmware-shared/blob/devel/can/canProtocolLib/iCubCanProto_analogSensorMessages.h
+    unsigned int canMessages=0;
+    unsigned id = 0x200 + boardId;
+    CanMessage &msg=outBuffer[0];
+    
+    // set period
+    msg.setId(id);
+    msg.getData()[0]=0x08;
+    msg.getData()[1]=period;
+    msg.setLen(2);
+    canMessages=0;
+    pCanBus->canWrite(outBuffer, 1, &canMessages);
+    yDebug("setting period to %d", period);
+
+    // we need to restart the board
+    msg.setId(id);
+    msg.getData()[0]=0x07;
+    if (useCalibration == 1)  msg.getData()[1]=0x00;
+    if (useCalibration == 2)  msg.getData()[1]=0x00;
+    if (useCalibration == 3)  msg.getData()[1]=0x00;
+    msg.setLen(2);
+    canMessages=0;
+    pCanBus->canWrite(outBuffer, 1, &canMessages);
+    return true;
+}
+
 

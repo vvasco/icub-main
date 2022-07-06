@@ -45,7 +45,7 @@ using namespace yarp::dev;
 class CanBusFtSensor : public PeriodicThread, 
                            public yarp::dev::IAnalogSensor, 
                            public DeviceDriver,
-                           public yarp::dev::ISixAxisForceTorqueSensors
+                           public yarp::dev::ISixAxisCanForceTorqueSensors
 {
     enum AnalogDataFormat
     {
@@ -112,12 +112,13 @@ public:
     virtual void threadRelease();
     virtual void run();
 
-    // ISixAxisForceTorqueSensors
+    // ISixAxisCanForceTorqueSensors
     virtual size_t getNrOfSixAxisForceTorqueSensors() const override;
     virtual yarp::dev::MAS_status getSixAxisForceTorqueSensorStatus(size_t sens_index) const override;
     virtual bool getSixAxisForceTorqueSensorName(size_t sens_index, std::string &name) const override;
     virtual bool getSixAxisForceTorqueSensorFrameName(size_t sens_index, std::string &frameName) const override;
     virtual bool getSixAxisForceTorqueSensorMeasure(size_t sens_index, yarp::sig::Vector& out, double& timestamp) const override;
+    virtual bool setDataRate(const int &period) override;
 
     //internal methods
     private:
