@@ -118,7 +118,7 @@ public:
     virtual bool getSixAxisForceTorqueSensorName(size_t sens_index, std::string &name) const override;
     virtual bool getSixAxisForceTorqueSensorFrameName(size_t sens_index, std::string &frameName) const override;
     virtual bool getSixAxisForceTorqueSensorMeasure(size_t sens_index, yarp::sig::Vector& out, double& timestamp) const override;
-    virtual bool setDataRate(const int &period) override;
+    virtual bool setDataRate(size_t sens_index, const int &period) override;
 
     //internal methods
     private:

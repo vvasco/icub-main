@@ -124,6 +124,7 @@ bool CanBusFtSensor::open(yarp::os::Searchable& config)
 
     //start the sensor broadcast
     sensor_start(config);
+    // setDataRate(50);
 
     PeriodicThread::start();
     return true;
@@ -563,7 +564,7 @@ bool CanBusFtSensor::getSixAxisForceTorqueSensorMeasure(size_t sens_index, yarp:
     return true;
 }
 
-bool CanBusFtSensor::setDataRate(const int &period) 
+bool CanBusFtSensor::setDataRate(size_t sens_index, const int &period) 
 {
     std::lock_guard<std::mutex> lck(mtx);
     //from https://github.com/robotology/icub-firmware-shared/blob/devel/can/canProtocolLib/iCubCanProto_analogSensorMessages.h
