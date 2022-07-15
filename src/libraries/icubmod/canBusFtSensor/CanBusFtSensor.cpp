@@ -593,4 +593,111 @@ bool CanBusFtSensor::setDataRate(size_t sens_index, const int &period)
     return true;
 }
 
+bool CanBusFtSensor::setMode(size_t sens_index, const int &mode) 
+{
+    std::lock_guard<std::mutex> lck(mtx);
+    //from https://github.com/robotology/icub-firmware-shared/blob/devel/can/canProtocolLib/iCubCanProto_analogSensorMessages.h
+    unsigned int canMessages=0;
+    unsigned id = 0x200 + boardId;
+    CanMessage &msg=outBuffer[0];
+
+    // we need to restart the board
+    msg.setId(id);
+    msg.getData()[0]=0x07;
+    if (mode == 0)  msg.getData()[1]=0x03;
+    if (mode == 1)  msg.getData()[1]=0x00;
+    if (mode == 2)  msg.getData()[1]=0x00;
+    if (mode == 3)  msg.getData()[1]=0x00;
+    msg.setLen(2);
+    canMessages=0;
+    pCanBus->canWrite(outBuffer, 1, &canMessages);
+    return true;
+}
+
+bool CanBusFtSensor::setFullScale(size_t sens_index, const bool &fullScale) 
+{
+    std::lock_guard<std::mutex> lck(mtx);
+    //from https://github.com/robotology/icub-firmware-shared/blob/devel/can/canProtocolLib/iCubCanProto_analogSensorMessages.h
+    unsigned int canMessages=0;
+    unsigned id = 0x200 + boardId;
+    CanMessage &msg=outBuffer[0];
+    
+    // set fs
+    /*
+    txBuffer[0].setId((2 << 8) + target_id);
+    txBuffer[0].setLen(4);
+    txBuffer[0].getData()[0]= 0x17;
+    txBuffer[0].getData()[1]= ((regset << 4) & 0xf0) | (channel & 0x0f);
+    txBuffer[0].getData()[2]= full_scale >> 8;
+    txBuffer[0].getData()[3]= full_scale & 0xFF;
+    */
+
+    // we need to restart the board
+    /*
+    msg.setId(id);
+    msg.getData()[0]=0x07;
+    if (useCalibration == 1)  msg.getData()[1]=0x00;
+    if (useCalibration == 2)  msg.getData()[1]=0x00;
+    if (useCalibration == 3)  msg.getData()[1]=0x00;
+    msg.setLen(2);
+    canMessages=0;
+    pCanBus->canWrite(outBuffer, 1, &canMessages);
+    */
+
+    //init message for strain board
+    if (channelsNum==6 && dataFormat==ANALOG_FORMAT_16_BIT)
+    {
+        //calibrated astrain board
+        if (useCalibration>0 && fullScale)
+        {
+            yDebug("Using internal calibration on device %i\n", boardId);
+            //get the full scale values from the strain board
+            for (int ch=0; ch<6; ch++)
+            {
+                bool b=false;
+                int attempts = 0;
+                while(attempts<15)
+                {
+                    b = readFullScaleAnalog(ch);
+                    if (b==true)
+                        {
+                            if (attempts>0)    yWarning("Trying to get fullscale data from sensor: channel recovered (ch:%d)\n", ch);
+                            break;
+                        }
+                    attempts++;
+                    yarp::os::Time::delay(0.020);
+                }
+                if (attempts>=15)
+                {
+                    yError("Trying to get fullscale data from sensor: all attempts failed (ch:%d)\n", ch);
+                }
+            }
+
+            // start the board
+            CanMessage &msg=outBuffer[0];
+            msg.setId(id);
+            msg.getData()[0]=0x07;
+            if (useCalibration == 1)  msg.getData()[1]=0x00;
+            if (useCalibration == 2)  msg.getData()[1]=0x00;
+            if (useCalibration == 3)  msg.getData()[1]=0x00;
+            msg.setLen(2);
+            canMessages=0;
+            pCanBus->canWrite(outBuffer, 1, &canMessages);
+        }
+        //not calibrated strain board (useCalibration = 0)
+        else
+        {
+            yInfo("Using uncalibrated raw data for device %i\n", boardId);
+            CanMessage &msg=outBuffer[0];
+            msg.setId(id);
+            msg.getData()[0]=0x07;
+            msg.getData()[1]=0x03;
+            msg.setLen(2);
+            canMessages=0;
+            pCanBus->canWrite(outBuffer, 1, &canMessages);
+        }
+    }
+
+    return true;
+}
 
