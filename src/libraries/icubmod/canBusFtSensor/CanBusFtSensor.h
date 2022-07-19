@@ -119,9 +119,8 @@ public:
     virtual bool getSixAxisForceTorqueSensorFrameName(size_t sens_index, std::string &frameName) const override;
     virtual bool getSixAxisForceTorqueSensorMeasure(size_t sens_index, yarp::sig::Vector& out, double& timestamp) const override;
     virtual bool setDataRate(size_t sens_index, const int &period) override;
-    virtual bool setMode(size_t sens_index, const int &mode) override;
-    virtual bool setFullScale(size_t sens_index, const bool &fullScale) override;
-
+    virtual bool setTxMode(size_t sens_index, const int &tx_mode) override;
+    
     //internal methods
     private:
     bool decode8 (const unsigned char *msg, int msg_id, double *data);
